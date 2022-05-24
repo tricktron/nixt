@@ -1,13 +1,16 @@
 {
-  description = "Test-runner for nixlang.";
+    description            = "Test-runner for nixlang.";
+    inputs.nixpkgs.url     = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    inputs.flake-utils.url = "github:numtide/flake-utils";
 
-  outputs = { self, nixpkgs }:
-    let
-      pkgs = import nixpkgs {};
-      nixt-pkg = pkgs.callPackage ./default.nix { inherit pkgs; };
-    in {
-
-    packages.x86_64-linux.nixt = nixt-pkg;
-    defaultPackage.x86_64-linux = nixt-pkg;
-  };
+    outputs = { self, nixpkgs, flake-utils }:
+    flake-utils.lib.eachDefaultSystem (system:
+        let
+            pkgs = import nixpkgs { inherit system; };
+        in
+        {
+            packages.nixt = pkgs.callPackage ./default.nix { inherit pkgs; };
+            defaultPackage = self.packages.${system}.nixt;
+        }
+    );
 }
